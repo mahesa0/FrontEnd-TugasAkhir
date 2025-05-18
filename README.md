@@ -1,30 +1,43 @@
-# React + TypeScript + Vite
+🖥️ SAW Frontend - Sistem Pendukung Keputusan
+Frontend dari aplikasi Sistem Pendukung Keputusan Pemilihan Jurusan di SMK menggunakan metode Simple Additive Weighting (SAW). Dibangun dengan React, Vite, dan dijalankan dalam lingkungan Electron Desktop App.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Currently, two official plugins are available:
+  🚀 Fitur Utama :
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+💻 Aplikasi desktop berbasis Electron
 
-## Expanding the ESLint configuration
+⚛️ Dibangun dengan React + Vite
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+🎨 Styling cepat menggunakan TailwindCSS
 
-- Configure the top-level `parserOptions` property like this:
+💡 Transisi halus menggunakan Framer Motion
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+📦 Interaksi API backend via Axios/fetch
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+📊 Dashboard pengguna dan hasil perhitungan SAW
+
+🔐 Validasi dan notifikasi menggunakan SweetAlert2
+
+🧠 Struktur modular: Header, Sidebar, dan MainContent (Dashboard, Registrations, Reports)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  📦 Stack Teknologi :
+
+- React + Vite (frontend framework & bundler)
+
+- TailwindCSS (styling)
+
+- Framer Motion (animasi transisi)
+
+- SweetAlert2 (notifikasi)
+
+- Lucide React & React Icons (ikon)
+
+- Electron (wrapper desktop)
+
+- TypeScript (pengembangan berbasis tipe, opsional)
+
+- ESLint & Prettier (quality tools)
+
