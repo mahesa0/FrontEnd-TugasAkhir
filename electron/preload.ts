@@ -1,5 +1,12 @@
 import { ipcRenderer, contextBridge } from "electron";
 
+// Debugging preload
+console.log("Preload script is running");
+
+// Log environment variables untuk debugging
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("VITE_API_BASE_URL:", process.env.VITE_API_BASE_URL);
+
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("ipcRenderer", {
   on(...args: Parameters<typeof ipcRenderer.on>) {
@@ -22,8 +29,24 @@ contextBridge.exposeInMainWorld("ipcRenderer", {
   },
 
   env: {
-    API_BASE_URL: process.env.API_BASE_URL,
+    API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     // Tambahkan variabel lingkungan lain yang dibutuhkan
   },
+  login: (payload: { username: string; password: string }) =>
+    ipcRenderer.invoke("login", payload),
+});
+
+// Tambahkan listener untuk DOM content loaded
+window.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM content loaded");
+
+  // Cek apakah React root ada
+  setTimeout(() => {
+    const rootElement = document.getElementById("root");
+    console.log("React root element found:", !!rootElement);
+    if (rootElement) {
+      console.log("Root element content:", rootElement.innerHTML);
+    }
+  }, 100);
 });

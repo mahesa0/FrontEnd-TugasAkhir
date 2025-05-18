@@ -13,16 +13,50 @@ export const AuthService = {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
-
+      // Periksa jika respons tidak berhasil (status code >= 400)
       if (!response.ok) {
-        // Menggunakan format error yang dikirim oleh server
+        // Coba baca body sebagai JSON. Jika gagal (misal body kosong/bukan JSON),
+        // gunakan pesan error default atau status code.
+        let errorData = {};
+        try {
+          const contentType = response.headers.get("content-type");
+          // Hanya coba parse JSON jika respons memiliki content-type JSON dan ada body
+          if (
+            contentType &&
+            contentType.includes("application/json") &&
+            parseInt(response.headers.get("content-length") || "0", 10) > 0
+          ) {
+            errorData = await response.json();
+          } else {
+            // Jika bukan JSON atau body kosong, gunakan status dan teks respons
+            errorData.status = response.status;
+            errorData.message = `Server error! Status: ${response.status}`;
+            // Coba baca teks respons jika ada, untuk debugging
+            try {
+              const text = await response.text();
+              if (text) errorData.responseText = text.substring(0, 200);
+            } catch (e) {
+              /* ignore */
+            }
+          }
+        } catch (e) {
+          // Jika parsing JSON gagal bahkan dengan header JSON, ini Unexpected end of JSON
+          errorData.status = response.status;
+          errorData.message = `Failed to parse error response as JSON: ${e.message}`;
+        }
+
+        // Buat objek error untuk dilempar
         throw {
-          status: data.status || response.status,
-          message: data.message || "Login gagal",
-          error: data.error || true,
+          status: errorData.status || response.status,
+          message:
+            errorData.message || `Login gagal (Status: ${response.status})`,
+          error: true,
+          responseText: errorData.responseText, // Sertakan teks respons parsial jika ada
         };
       }
+
+      // Jika respons berhasil (status code 2xx)
+      const data = await response.json(); // Sekarang aman mengurai JSON karena response.ok true
 
       // Simpan token ke localStorage
       if (data.token) {
@@ -33,7 +67,10 @@ export const AuthService = {
       return data;
     } catch (error) {
       console.error("Login error:", error);
-      throw error;
+      // Pastikan token dan user dihapus di localStorage jika login gagal
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      throw error; // Lempar kembali error agar bisa ditangani di komponen yang memanggil
     }
   },
 
@@ -54,7 +91,7 @@ export const AuthService = {
         // Menggunakan format error yang dikirim oleh server
         throw {
           status: data.status || response.status,
-          message: data.message || "Register gagal",
+          message: data.message || "Gagal mendaftar",
           error: data.error || true,
         };
       }
@@ -190,7 +227,7 @@ export const AuthService = {
     } catch (error) {
       console.error("Logout error:", error);
 
-      // Tetap hapus token dari localStorage meskipun request gagal
+      // Pastikan token dan user dihapus di localStorage meskipun request gagal
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 

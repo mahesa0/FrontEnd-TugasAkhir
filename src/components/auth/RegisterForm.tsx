@@ -40,7 +40,7 @@ const RegisterForm = ({ onSwitch }: { onSwitch: () => void }) => {
       }
 
       // set time out untuk login
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       if (password !== confPassword) {
         Swal.fire({

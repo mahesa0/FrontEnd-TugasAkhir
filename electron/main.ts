@@ -1,11 +1,12 @@
 import { app, BrowserWindow } from "electron";
-// import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import dotenv from "dotenv";
+import { existsSync } from "node:fs";
 
-// const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Tambahkan debugging untuk melihat paths
 
 dotenv.config();
 // The built directory structure
@@ -24,6 +25,8 @@ export const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 export const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 
+// Logging path penting
+
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, "public")
   : RENDERER_DIST;
@@ -33,9 +36,12 @@ let win: BrowserWindow | null;
 function createWindow() {
   win = new BrowserWindow({
     // icon: path.join(process.env.APP_ROOT, "/src/assets/wb icon.ico"),
-    icon: path.join(__dirname, ""),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
+      // Tambahkan ini untuk memungkinkan debugging lebih baik
+      devTools: true,
+      nodeIntegration: false,
+      contextIsolation: true,
     },
     width: 1200,
     height: 800,
@@ -47,11 +53,30 @@ function createWindow() {
     win?.webContents.send("main-process-message", new Date().toLocaleString());
   });
 
+  // Tambahkan event listener untuk mendeteksi kegagalan loading
+  win.webContents.on("did-fail-load", (event, errorCode, errorDescription) => {
+    console.error(
+      "Failed to load window content:",
+      errorCode,
+      errorDescription
+    );
+  });
+
+  // Tambahkan debugging untuk path yang dimuat
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
   } else {
-    // win.loadFile('dist/index.html')
-    win.loadFile(path.join(RENDERER_DIST, "index.html"));
+    const indexHtmlPath = path.join(RENDERER_DIST, "index.html");
+    const absoluteIndexHtmlPath = path.resolve(indexHtmlPath);
+
+    // Cek apakah file index.html ada
+    if (!existsSync(absoluteIndexHtmlPath)) {
+      console.error("index.html does NOT exist at path!");
+      // Coba cari file index.html di lokasi lain
+      // console.log("Current directory files:", readdirSync(process.cwd())); // Keeping this commented out in case it's needed for future debugging
+    }
+
+    win.loadFile(absoluteIndexHtmlPath);
   }
 }
 

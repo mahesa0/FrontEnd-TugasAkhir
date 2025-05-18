@@ -58,7 +58,7 @@ const LoginForm = ({
         return;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Kirim request login dan dapatkan data user
       const response = await AuthService.login(username, password);

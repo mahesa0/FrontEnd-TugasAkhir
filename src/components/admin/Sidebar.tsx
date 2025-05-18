@@ -19,7 +19,7 @@ export default function Sidebar({ activeMenu, setActiveMenu }: SidebarProps) {
 
   const HandleLogout = async () => {
     setIsLoggingOut(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     AuthService.logout();
     navigate("/auth", { replace: true });
   };
