@@ -58,14 +58,16 @@ const LoginForm = ({
         return;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
+      await new Promise((resolve) => setTimeout(resolve, 50));
       // Kirim request login dan dapatkan data user
       const response = await AuthService.login(username, password);
       // Ambil role dari response
       const userRole = response?.user?.role;
 
       if (userRole === "Admin" || userRole === "User") {
+        // Simpan data user lengkap
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("user", JSON.stringify(response.user));
         onLoginSuccess(userRole); // lempar role ke parent
       } else {
         Swal.fire({

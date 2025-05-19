@@ -1,4 +1,4 @@
-import API_BASE_URL, { API_ENDPOINTS } from "./config.js";
+import { API_ENDPOINTS } from "./config.js";
 
 // Service untuk menangani autentikasi
 export const AuthService = {
@@ -134,8 +134,19 @@ export const AuthService = {
   //Fungsi untuk update user
   updateUserById: async (id, updatedData) => {
     try {
-      const token = AuthService.getToken(); // Ambil token jika ada autentikasi
-      const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+      const token = AuthService.getToken();
+
+      if (!token) {
+        throw {
+          status: 401,
+          message: "Token tidak ditemukan. Silakan login kembali.",
+          error: true,
+        };
+      }
+
+      const endpoint = API_ENDPOINTS.UPDATE_BY_ID.replace(":id", id);
+
+      const response = await fetch(endpoint, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -165,12 +176,15 @@ export const AuthService = {
   deleteUserById: async (id) => {
     try {
       const token = AuthService.getToken();
-      const response = await fetch(`${API_BASE_URL}/users/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        API_ENDPOINTS.DELETE_BY_ID.replace(":id", id),
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await response.json();
 
@@ -195,7 +209,7 @@ export const AuthService = {
       const token = AuthService.getToken();
 
       // Panggil endpoint logout di backend
-      const response = await fetch(`${API_BASE_URL}/users/logout`, {
+      const response = await fetch(API_ENDPOINTS.LOGOUT, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -258,7 +272,9 @@ export const AuthService = {
 
   // Funsi untuk mendapatkan username
   getUsername: () => {
-    const user = AuthService.getCurrentUser();
+    const userStr = localStorage.getItem("user");
+    const user = userStr ? JSON.parse(userStr) : null;
+
     return user ? user.username : null;
   },
 };

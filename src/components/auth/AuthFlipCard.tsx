@@ -8,16 +8,26 @@ import { useNavigate } from "react-router-dom";
 const AuthFlipCard = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
   const navigate = useNavigate();
   const [isFlipped, setIsFlipped] = useState(false);
+  const [registerKey, setRegisterKey] = useState(0);
+  const [loginKey, setLoginKey] = useState(0);
 
   const handleLoginSuccess = (role: string) => {
-    const userData = { role };
-    localStorage.setItem("user", JSON.stringify(userData));
     onLoginSuccess();
     if (role === "Admin") {
       navigate("/dashboard", { replace: true });
     } else if (role === "User") {
       navigate("/home", { replace: true });
     }
+  };
+
+  const handleSwitchToRegister = () => {
+    setRegisterKey((prev) => prev + 1);
+    setIsFlipped(true);
+  };
+
+  const handleSwitchToLogin = () => {
+    setLoginKey((prev) => prev + 1);
+    setIsFlipped(false);
   };
 
   return (
@@ -31,7 +41,8 @@ const AuthFlipCard = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
         {/* Login card */}
         <div className="absolute w-full h-full backface-hidden">
           <LoginForm
-            onSwitch={() => setIsFlipped(true)}
+            key={loginKey}
+            onSwitch={handleSwitchToRegister}
             onLoginSuccess={handleLoginSuccess}
           />
         </div>
@@ -44,7 +55,7 @@ const AuthFlipCard = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
             transform: "rotateY(180deg)",
           }}
         >
-          <RegisterForm onSwitch={() => setIsFlipped(false)} />
+          <RegisterForm key={registerKey} onSwitch={handleSwitchToLogin} />
         </div>
       </motion.div>
     </div>

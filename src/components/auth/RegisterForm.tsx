@@ -40,7 +40,7 @@ const RegisterForm = ({ onSwitch }: { onSwitch: () => void }) => {
       }
 
       // set time out untuk login
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       if (password !== confPassword) {
         Swal.fire({
@@ -64,7 +64,7 @@ const RegisterForm = ({ onSwitch }: { onSwitch: () => void }) => {
           backdrop: "backdrop-blur-sm bg-black/50",
         },
         text: "Akun berhasil dibuat. Mengarahkan ke halaman login...",
-        timer: 2000,
+        timer: 1500,
         showConfirmButton: false,
       });
 
