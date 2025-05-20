@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import "./style.css";
 import wbicon from "/src/assets/wb icon.png";
 import AnimatedPage from "../AnimatedPage";
-import AuthService from "../../api/authService";
+import AuthService from "../../services/authService";
 import Swal from "sweetalert2";
 import { Loader2 } from "lucide-react";
 

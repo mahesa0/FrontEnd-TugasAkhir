@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { FaPen, FaTrash, FaTimes } from "react-icons/fa";
 import "react-icons";
-import AuthService from "../../api/authService";
+import AuthService from "../../services/authService";
 import Swal from "sweetalert2";
 import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
 export default function DashboardPage() {
   interface User {
@@ -19,6 +20,8 @@ export default function DashboardPage() {
   const [role, setRole] = useState("");
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
@@ -42,6 +45,7 @@ export default function DashboardPage() {
       return;
     }
 
+    setIsSaving(true);
     try {
       const response = await AuthService.updateUserById(editingUser._id, {
         username,
@@ -104,6 +108,8 @@ export default function DashboardPage() {
         confirmButtonColor: "#3B82F6",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -122,7 +128,9 @@ export default function DashboardPage() {
     });
 
     if (result.isConfirmed) {
+      setIsDeleting(id);
       try {
+        await new Promise((resolve) => setTimeout(resolve, 300));
         await AuthService.deleteUserById(id);
 
         await Swal.fire({
@@ -146,6 +154,8 @@ export default function DashboardPage() {
           icon: "error",
           showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
         });
+      } finally {
+        setIsDeleting(null);
       }
     }
   };
@@ -238,9 +248,19 @@ export default function DashboardPage() {
                     <button
                       onClick={() => handleDelete(user._id)}
                       className="bg-red-500 hover:bg-red-800  rounded p-2 flex items-center justify-center gap-1"
+                      disabled={isDeleting === user._id}
                     >
-                      <FaTrash size="14" />
-                      Hapus
+                      {isDeleting === user._id ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" />
+                          Menghapus...
+                        </>
+                      ) : (
+                        <>
+                          <FaTrash size="14" />
+                          Hapus
+                        </>
+                      )}
                     </button>
                   </td>
                 </tr>
@@ -317,9 +337,17 @@ export default function DashboardPage() {
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
+                  disabled={isSaving}
                 >
-                  Simpan
+                  {isSaving ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Menyimpan...
+                    </>
+                  ) : (
+                    "Simpan"
+                  )}
                 </button>
               </div>
             </motion.div>

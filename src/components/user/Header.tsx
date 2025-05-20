@@ -12,12 +12,12 @@ export default function Header() {
         className="size-20 w-auto object-contain pointer-events-none select-none"
       ></img>
       <div className="relative ">
-        <p className="text-gray-800 font-bold text-2xl text-center">
-          DASHBOARD ADMIN
+        <p className="text-black font-bold text-2xl text-center">
+          SISTEM PENDUKUNG KEPUTUSAN <br />
         </p>
       </div>
       <div className="flex flex-row gap-2 items-center">
-        <p className="text-gray-800">Hello {user}!</p>
+        <p className="text-black">Hello {user}!</p>
         <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
           <User size={18} className="text-gray-700" />
         </div>
