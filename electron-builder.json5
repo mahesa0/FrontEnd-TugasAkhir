@@ -3,7 +3,7 @@
   $schema: "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   appId: "SPK-App",
   asar: true,
-  productName: "SPKJurusanWB",
+  productName: "SPK-SAW",
   directories: {
     output: "release/${version}",
   },

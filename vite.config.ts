@@ -84,6 +84,7 @@ export default defineConfig({
   define: {
     "process.env": {
       NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+      VITE_API_BASE_URL: JSON.stringify(process.env.VITE_API_BASE_URL),
     },
   },
   // Pastikan base URL tepat untuk produksi
@@ -92,9 +93,9 @@ export default defineConfig({
     proxy: {
       // Mengarahkan permintaan ke /users/* dari dev server ke backend Vercel
       "/users": {
-        target:
-          "https://back-end-tugas-akhir-git-main-thoriks-projects-d3e6c91a.vercel.app",
+        target: process.env.VITE_API_BASE_URL,
         changeOrigin: true,
+        secure: false,
         // Jika backend Anda tidak mengharapkan path prefix /users, gunakan rewrite:
         // rewrite: (path) => path.replace(/^\/users/, ''),
       },
