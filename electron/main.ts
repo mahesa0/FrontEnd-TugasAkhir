@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import dotenv from "dotenv";
@@ -35,18 +35,20 @@ let win: BrowserWindow | null;
 
 function createWindow() {
   win = new BrowserWindow({
-    // icon: path.join(process.env.APP_ROOT, "/src/assets/wb icon.ico"),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
-      // Tambahkan ini untuk memungkinkan debugging lebih baik
       devTools: true,
       nodeIntegration: false,
       contextIsolation: true,
     },
-    width: 1200,
-    height: 800,
+    frame: true,
     autoHideMenuBar: true,
+    titleBarStyle: "default",
+    resizable: true,
   });
+
+  // Maksimalkan window setelah dibuat
+  win.maximize();
 
   // Test active push message to Renderer-process.
   win.webContents.on("did-finish-load", () => {
@@ -80,6 +82,15 @@ function createWindow() {
   }
 }
 
+app.whenReady().then(() => {
+  createWindow();
+
+  // Tambahkan listener untuk membuka URL eksternal
+  ipcMain.on("open-external-url", (event, url) => {
+    shell.openExternal(url);
+  });
+});
+
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
@@ -98,4 +109,4 @@ app.on("activate", () => {
   }
 });
 
-app.whenReady().then(createWindow);
+// app.whenReady().then(createWindow); // Pindahkan ini ke bagian manipulasi menu

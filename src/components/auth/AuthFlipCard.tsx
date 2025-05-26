@@ -13,10 +13,8 @@ const AuthFlipCard = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
 
   const handleLoginSuccess = (role: string) => {
     onLoginSuccess();
-    if (role === "Admin") {
+    if (role === "User" || role === "Admin") {
       navigate("/dashboard", { replace: true });
-    } else if (role === "User") {
-      navigate("/home", { replace: true });
     }
   };
 

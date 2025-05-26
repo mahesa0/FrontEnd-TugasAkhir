@@ -1,25 +1,25 @@
 // layouts/MainLayout.tsx
 import { useState, useEffect } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import Sidebar from "../../user/Sidebar";
-import Header from "../../user/Header";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
 
-export default function HomeLayout() {
+export default function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [activePage, setActivePage] = useState<string>("Page");
+  const [activeDashboard, setActiveDashboard] = useState<string>("user");
 
   // Sinkronkan activeDashboard dengan URL saat mount atau URL berubah
   useEffect(() => {
     const segments = location.pathname.split("/");
-    const page = segments[2] || "page";
-    setActivePage(page);
+    const dashboard = segments[2] || "user";
+    setActiveDashboard(dashboard);
   }, [location.pathname]);
 
   // Dipanggil oleh Sidebar untuk navigasi
-  const handleSetMenu = (page: string) => {
-    setActivePage(page);
-    navigate(`/home/${page}`);
+  const handleSetMenu = (dashboard: string) => {
+    setActiveDashboard(dashboard);
+    navigate(`/dashboard/${dashboard}`);
   };
 
   return (
@@ -28,10 +28,10 @@ export default function HomeLayout() {
       <Header />
       <div className="flex overflow-hidden h-screen">
         {/* Sidebar: menerima prop activeDashboard & setter */}
-        <Sidebar activeMenu={activePage} setActiveMenu={handleSetMenu} />
+        <Sidebar activeMenu={activeDashboard} setActiveMenu={handleSetMenu} />
 
         {/* Konten halaman child akan dirender di sini */}
-        <div className="flex-1 overflow-auto bg-gray-50 p-4">
+        <div className="flex-1 overflow-auto bg-gray-50">
           <Outlet />
         </div>
       </div>

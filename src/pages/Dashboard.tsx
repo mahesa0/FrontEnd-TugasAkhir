@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaPen, FaTrash, FaTimes } from "react-icons/fa";
 import "react-icons";
-import AuthService from "../../services/authService";
+import AuthService from "../services/authService";
 import Swal from "sweetalert2";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -10,14 +10,12 @@ export default function DashboardPage() {
   interface User {
     _id: string;
     username: string;
-    role: string;
     createdAt: string;
   }
 
   const [users, setUsers] = useState<User[]>([]);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [username, setUsername] = useState("");
-  const [role, setRole] = useState("");
   const [password, setPassword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -26,14 +24,13 @@ export default function DashboardPage() {
   const handleEdit = (user: User) => {
     setEditingUser(user);
     setUsername(user.username);
-    setRole(user.role);
     setPassword("");
   };
 
   const handleSave = async () => {
     if (!editingUser) return;
 
-    if (!username.trim() || !role.trim()) {
+    if (!username.trim()) {
       await Swal.fire({
         icon: "error",
         title: "Gagal!",
@@ -49,7 +46,6 @@ export default function DashboardPage() {
     try {
       const response = await AuthService.updateUserById(editingUser._id, {
         username,
-        role,
         password,
       });
 
@@ -203,7 +199,6 @@ export default function DashboardPage() {
         <thead className="bg-gray-100">
           <tr className="border border-gray-300 text-center">
             <th className="p-2 border-r border-gray-300">Nama pengguna</th>
-            <th className="p-2 border-r border-gray-300 ">Role</th>
             <th className="p-2 border-r border-gray-300">Dibuat pada</th>
             <th className="p-2 border-r border-gray-300">Aksi</th>
           </tr>
@@ -225,7 +220,6 @@ export default function DashboardPage() {
                   <td className="p-2 border-r border-gray-300">
                     {user.username}
                   </td>
-                  <td className="p-2 border-r border-gray-300">{user.role}</td>
                   <td className="p-2 border-r border-gray-300">
                     {new Date(user.createdAt).toLocaleString("en-US", {
                       hour12: false,
@@ -267,7 +261,7 @@ export default function DashboardPage() {
               ))
           ) : (
             <tr className="border border-gray-300 text-center">
-              <td className="p-2" colSpan={4}>
+              <td className="p-2" colSpan={3}>
                 Tidak ada data pengguna
               </td>
             </tr>
@@ -293,8 +287,6 @@ export default function DashboardPage() {
             >
               <h2 className="text-xl font-bold mb-4">Edit Pengguna</h2>
 
-              {/* Feedback message - now only inside modal */}
-
               <label className="block mb-2">
                 Nama pengguna:
                 <input
@@ -302,21 +294,6 @@ export default function DashboardPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
-              </label>
-              <label className="block mb-2">
-                Role:
-                <select
-                  className="w-full border rounded-sm p-2 mt-1"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                >
-                  <option className="text-lg" value="Admin">
-                    Admin
-                  </option>
-                  <option className="text-lg" value="User">
-                    User
-                  </option>
-                </select>
               </label>
               <label className="block mb-2">
                 Kata sandi baru (optional):
@@ -328,21 +305,21 @@ export default function DashboardPage() {
                 />
               </label>
 
-              <div className="flex justify-end mt-4 space-x-2">
+              <div className="flex justify-end gap-2 mt-4">
                 <button
                   onClick={() => setEditingUser(null)}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 >
                   Batal
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center gap-2"
                   disabled={isSaving}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
                 >
                   {isSaving ? (
                     <>
-                      <Loader2 size={16} className="animate-spin" />
+                      <Loader2 size={14} className="animate-spin inline mr-2" />
                       Menyimpan...
                     </>
                   ) : (

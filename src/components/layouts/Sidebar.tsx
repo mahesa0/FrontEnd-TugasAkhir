@@ -5,6 +5,7 @@ import { useState } from "react";
 import { RxDashboard } from "react-icons/rx";
 import { TbReport } from "react-icons/tb";
 import { LiaHistorySolid } from "react-icons/lia";
+import { FaHome } from "react-icons/fa";
 
 type SidebarProps = {
   activeMenu: string;
@@ -12,6 +13,11 @@ type SidebarProps = {
 };
 
 const menuItems = [
+  {
+    key: "home",
+    label: "Beranda",
+    icon: <FaHome />,
+  },
   {
     key: "user",
     label: "Pengguna",
