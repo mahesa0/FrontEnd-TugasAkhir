@@ -1,61 +1,67 @@
+// pages/Report.tsx
 import { useEffect, useState } from "react";
 import {
   FaPen,
   FaTrash,
   FaTimes,
-  FaPrint,
   FaPlus,
+  FaPrint,
   FaFileAlt,
   FaFileExcel,
 } from "react-icons/fa";
-import "react-icons";
-import AuthService from "../services/authService";
-import Swal from "sweetalert2";
-import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Swal from "sweetalert2";
+import { CriteriaService } from "../services/criteriaService";
 
-export default function DashboardPage() {
-  interface User {
-    _id: string;
-    username: string;
-    createdAt: string;
-  }
+interface Criteria {
+  _id: string;
+  kodeKriteria: string;
+  namaKriteria: string;
+  tipeKriteria: "Benefit" | "Cost";
+  bobotKriteria: number;
+}
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+export default function Criteria() {
+  const [criteria, setCriteria] = useState<Criteria[]>([]);
+  const [editingCriteria, setEditingCriteria] = useState<Criteria | null>(null);
+  const [kodeKriteria, setKodeKriteria] = useState("");
+  const [namaKriteria, setNamaKriteria] = useState("");
+  const [tipeKriteria, setTipeKriteria] = useState<"Benefit" | "Cost">(
+    "Benefit"
+  );
+  const [bobotKriteria, setBobotKriteria] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-
-  // State untuk modal Tambah Pengguna
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newUserData, setNewUserData] = useState({
-    username: "",
-    password: "",
+  const [newCriteriaData, setNewCriteriaData] = useState({
+    kodeKriteria: "",
+    namaKriteria: "",
+    tipeKriteria: "Benefit" as "Benefit" | "Cost",
+    bobotKriteria: "",
   });
   const [isCreating, setIsCreating] = useState(false);
-
-  // State untuk modal Laporan Pengguna
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  const handleEdit = (user: User) => {
-    setEditingUser(user);
-    setUsername(user.username);
-    setPassword("");
+  const handleEdit = (criteria: Criteria) => {
+    setEditingCriteria(criteria);
+    setKodeKriteria(criteria.kodeKriteria);
+    setNamaKriteria(criteria.namaKriteria);
+    setTipeKriteria(criteria.tipeKriteria);
+    setBobotKriteria(criteria.bobotKriteria?.toString() ?? "");
   };
 
   const handleSave = async () => {
-    if (!editingUser) return;
+    if (!editingCriteria) return;
 
-    if (!username.trim()) {
+    if (!kodeKriteria.trim() || !namaKriteria.trim()) {
       await Swal.fire({
         icon: "error",
         title: "Gagal!",
         width: "47vh",
         confirmButtonColor: "#3B82F6",
-        text: "Nama pengguna tidak boleh kosong",
+        text: "Semua field harus diisi (Kode Kriteria dan Nama Kriteria)",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
       return;
@@ -63,62 +69,38 @@ export default function DashboardPage() {
 
     setIsSaving(true);
     try {
-      const response = await AuthService.updateUserById(editingUser._id, {
-        username,
-        ...(password.trim() && { password }),
-      });
+      const updatedData = {
+        kodeKriteria,
+        namaKriteria,
+        tipeKriteria,
+        bobotKriteria: parseFloat(bobotKriteria),
+      };
 
+      await CriteriaService.updateCriteria(editingCriteria._id, updatedData);
       await Swal.fire({
-        icon: "success",
         title: "Berhasil!",
-        text:
-          response.data.message ||
-          `Pengguna berhasil diperbarui${
-            password.trim() ? " dengan kata sandi baru" : ""
-          }`,
+        text: "Kriteria berhasil diperbarui",
+        icon: "success",
         timer: 1300,
         showConfirmButton: false,
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
 
-      await fetchUsers();
-
-      setEditingUser(null);
-      setPassword("");
-    } catch (error) {
-      console.error("Gagal memperbarui pengguna:", error);
-
-      let errorMessage = "Gagal memperbarui pengguna";
-
-      if (error && typeof error === "object") {
-        if ("response" in error) {
-          const apiError = error as {
-            response?: {
-              data?: {
-                message?: string;
-                errors?: Array<{ msg?: string }>;
-              };
-            };
-          };
-
-          if (apiError.response?.data?.message) {
-            errorMessage = apiError.response.data.message;
-          } else if (apiError.response?.data?.errors?.length) {
-            errorMessage = apiError.response.data.errors
-              .map((e) => e.msg || "Validasi gagal")
-              .join(", ");
-          }
-        } else if ("message" in error && typeof error.message === "string") {
-          errorMessage = error.message;
-        }
+      const response = await CriteriaService.getAllCriteria();
+      if (response && response.data) {
+        setCriteria(response.data);
       }
-
-      await Swal.fire({
+      setEditingCriteria(null);
+    } catch (error) {
+      console.error("Gagal memperbarui kriteria:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      Swal.fire({
+        title: "Gagal!",
+        text:
+          "Gagal memperbarui kriteria. Silakan coba lagi.\n\nDetail: " +
+          errorMessage,
         icon: "error",
-        title: "Gagal! Kompetitor!",
-        width: "53vh",
-        text: errorMessage,
-        confirmButtonColor: "#3B82F6",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
     } finally {
@@ -129,7 +111,7 @@ export default function DashboardPage() {
   const handleDelete = async (id: string) => {
     const result = await Swal.fire({
       title: "Apakah kamu yakin?",
-      text: "Data pengguna akan dihapus secara permanen!",
+      text: "Data kriteria akan dihapus secara permanen!",
       icon: "warning",
       width: "59vh",
       showCancelButton: true,
@@ -144,23 +126,30 @@ export default function DashboardPage() {
       setIsDeleting(id);
       try {
         await new Promise((resolve) => setTimeout(resolve, 300));
-        await AuthService.deleteUserById(id);
+        await CriteriaService.deleteCriteria(id);
 
         await Swal.fire({
           title: "Terhapus!",
-          text: "Pengguna berhasil dihapus.",
+          text: "Kriteria berhasil dihapus.",
           icon: "success",
           timer: 1300,
           showConfirmButton: false,
           showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
         });
 
-        await fetchUsers();
+        const response = await CriteriaService.getAllCriteria();
+        if (response && response.data) {
+          setCriteria(response.data);
+        }
       } catch (error) {
-        console.error("Gagal menghapus user:", error);
+        console.error("Gagal menghapus kriteria:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         Swal.fire({
-          title: "Gagal! Kompetitor!",
-          text: "Gagal menghapus user. Silakan coba lagi.",
+          title: "Gagal!",
+          text:
+            "Gagal menghapus kriteria. Silakan coba lagi.\n\nDetail: " +
+            errorMessage,
           icon: "error",
           showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
         });
@@ -170,73 +159,76 @@ export default function DashboardPage() {
     }
   };
 
-  const fetchUsers = async () => {
+  const fetchCriteria = async () => {
     try {
-      const response = await AuthService.getAllUsers();
+      const response = await CriteriaService.getAllCriteria();
       if (response && response.data) {
-        setUsers(response.data);
+        setCriteria(response.data);
       } else {
         console.warn(
-          "AuthService.getAllUsers returned unexpected data:",
+          "CriteriaService.getAllCriteria returned unexpected data:",
           response
         );
-        setUsers([]);
+        setCriteria([]);
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
-      let errorMessage =
-        "Gagal memuat data pengguna. Pastikan Anda sudah login dan server berjalan.";
-      if (
-        error &&
-        typeof error === "object" &&
-        "message" in error &&
-        typeof error.message === "string"
-      ) {
-        errorMessage += `\n\nDetail: ${error.message}`;
-      }
+      console.error("Error fetching criteria:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       Swal.fire({
         title: "Error",
-        text: errorMessage,
+        text:
+          "Gagal memuat data kriteria. Pastikan Anda sudah login dan server berjalan.\n\nDetail: " +
+          errorMessage,
         icon: "error",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
-      setUsers([]);
+      setCriteria([]);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchCriteria();
   }, []);
 
-  // Handler untuk membuka modal Tambah Pengguna
   const handleOpenCreateModal = () => {
-    setNewUserData({ username: "", password: "" });
+    setNewCriteriaData({
+      kodeKriteria: "",
+      namaKriteria: "",
+      tipeKriteria: "Benefit",
+      bobotKriteria: "",
+    });
     setIsCreateModalOpen(true);
   };
 
-  // Handler untuk menutup modal Tambah Pengguna
   const handleCloseCreateModal = () => {
     setIsCreateModalOpen(false);
   };
 
-  // Handler untuk input change pada form Tambah Pengguna
-  const handleCreateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCreateInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value } = e.target;
-    setNewUserData((prevData) => ({
+    setNewCriteriaData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
   };
 
-  // Handler untuk submit form Tambah Pengguna
-  const handleCreateUser = async () => {
-    if (!newUserData.username.trim() || !newUserData.password.trim()) {
+  const handleCreateSave = async () => {
+    if (
+      !newCriteriaData.kodeKriteria.trim() ||
+      !newCriteriaData.namaKriteria.trim() ||
+      !newCriteriaData.tipeKriteria
+    ) {
       await Swal.fire({
         icon: "error",
-        title: "Gagal! Kompetitor!",
+        title: "Gagal!",
         width: "47vh",
         confirmButtonColor: "#3B82F6",
-        text: "Username dan Password harus diisi",
+        text: "Kode Kriteria, Nama Kriteria, dan Tipe Kriteria harus diisi",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
       return;
@@ -244,56 +236,34 @@ export default function DashboardPage() {
 
     setIsCreating(true);
     try {
-      const response = await AuthService.register(
-        newUserData.username,
-        newUserData.password,
-        newUserData.password
-      );
+      const criteriaToCreate = {
+        ...newCriteriaData,
+        bobotKriteria: newCriteriaData.bobotKriteria
+          ? parseFloat(newCriteriaData.bobotKriteria)
+          : undefined,
+      };
 
+      await CriteriaService.createCriteria(criteriaToCreate);
       await Swal.fire({
         title: "Berhasil!",
-        text:
-          response &&
-          typeof response === "object" &&
-          "message" in response &&
-          typeof response.message === "string"
-            ? response.message
-            : "Pengguna berhasil ditambahkan",
+        text: "Kriteria berhasil ditambahkan",
         icon: "success",
         timer: 1300,
         showConfirmButton: false,
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
 
-      await fetchUsers();
+      fetchCriteria();
       handleCloseCreateModal();
-    } catch (error: unknown) {
-      console.error("Gagal membuat pengguna:", error);
-
-      let errorMessage = "Gagal membuat pengguna. Silakan coba lagi.";
-
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "message" in error &&
-        typeof (error as { message: string }).message === "string"
-      ) {
-        errorMessage = (error as { message: string }).message;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === "string") {
-        errorMessage = error;
-      } else {
-        try {
-          errorMessage = JSON.stringify(error);
-        } catch (e) {
-          errorMessage = String(error);
-        }
-      }
-
+    } catch (error) {
+      console.error("Gagal membuat kriteria:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       Swal.fire({
-        title: "Gagal! Kompetitor!",
-        text: errorMessage,
+        title: "Gagal!",
+        text:
+          "Gagal membuat kriteria. Silakan coba lagi.\n\nDetail: " +
+          errorMessage,
         icon: "error",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
@@ -302,55 +272,48 @@ export default function DashboardPage() {
     }
   };
 
-  // Handler untuk membuka modal Laporan Pengguna
   const handleOpenReportModal = () => {
     setIsReportModalOpen(true);
   };
 
-  // Handler untuk menutup modal Laporan Pengguna
   const handleCloseReportModal = () => {
     setIsReportModalOpen(false);
   };
 
-  // Handler untuk tombol print (dalam modal laporan)
   const handlePrintReport = () => {
     window.print();
   };
 
-  // Handler untuk tombol export ke Excel (CSV) (dalam modal laporan)
   const handleExportReportExcel = () => {
-    const usersToExport = users.filter((user) =>
-      user.username.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredCriteria = criteria.filter(
+      (item) =>
+        item &&
+        item.namaKriteria &&
+        item.namaKriteria.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (usersToExport.length === 0) {
+    if (filteredCriteria.length === 0) {
       Swal.fire({
         icon: "info",
         title: "Info",
-        text: "Tidak ada data pengguna untuk diexport.",
+        text: "Tidak ada data kriteria untuk diexport.",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
       return;
     }
 
-    const headers = ["Nama Pengguna", "Dibuat Pada"];
-    const rows = usersToExport.map((user) => {
-      const date = new Date(user.createdAt);
-      // Format tanggal menjadi YYYY-MM-DD HH:mm:ss secara manual untuk konsistensi CSV
-      const year = date.getFullYear();
-      const month = ("0" + (date.getMonth() + 1)).slice(-2); // Bulan 0-11, tambahkan 1
-      const day = ("0" + date.getDate()).slice(-2);
-      const hours = ("0" + date.getHours()).slice(-2);
-      const minutes = ("0" + date.getMinutes()).slice(-2);
-      const seconds = ("0" + date.getSeconds()).slice(-2);
-
-      const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-
-      return [
-        user.username,
-        formattedDate, // Gunakan format tanggal yang baru
-      ];
-    });
+    const headers = [
+      "Kode Kriteria",
+      "Nama Kriteria",
+      "Tipe Kriteria",
+      "Bobot",
+    ];
+    const rows = filteredCriteria.map((item) => [
+      item.kodeKriteria,
+      item.namaKriteria,
+      item.tipeKriteria,
+      item.bobotKriteria,
+    ]);
 
     const csvContent = [
       headers.join(","),
@@ -362,7 +325,7 @@ export default function DashboardPage() {
     const url = URL.createObjectURL(blob);
 
     link.setAttribute("href", url);
-    link.setAttribute("download", "data_pengguna.csv");
+    link.setAttribute("download", "data_kriteria.csv");
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -370,19 +333,21 @@ export default function DashboardPage() {
     URL.revokeObjectURL(url);
   };
 
-  // Filter data pengguna berdasarkan searchTerm
-  const filteredUsers = users.filter((user) =>
-    user.username.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCriteria = criteria.filter(
+    (item) =>
+      item &&
+      item.namaKriteria &&
+      item.namaKriteria.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="p-4 text-gray-700">
       <div className="flex justify-between items-center mb-4">
-        <span className="text-2xl">Tabel Pengguna</span>
+        <span className="text-2xl">Tabel Kriteria</span>
         <div className="relative w-full sm:w-1/3 flex items-center">
           <input
             type="text"
-            placeholder="Cari nama pengguna..."
+            placeholder="Cari nama kriteria..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 w-full shadow"
@@ -394,10 +359,7 @@ export default function DashboardPage() {
             <FaTimes size={16} />
           </button>
         </div>
-
-        {/* Container untuk tombol Tambah dan Laporan */}
-        <div className="flex flex-row gap-2 items-center">
-          {/* Tombol Tambah Pengguna */}
+        <div className="flex flex-row">
           <button
             onClick={handleOpenCreateModal}
             className="bg-green-500 hover:bg-green-700 text-white rounded-lg px-4 py-2 flex items-center gap-2"
@@ -405,64 +367,62 @@ export default function DashboardPage() {
             <FaPlus size={16} />
             Tambah
           </button>
-
-          {/* Tombol Laporan Pengguna */}
           <button
             onClick={handleOpenReportModal}
-            className="bg-blue-500 hover:bg-blue-700 text-white rounded-lg px-4 py-2 flex items-center gap-2"
+            className="bg-blue-500 hover:bg-blue-700 text-white rounded-lg px-4 py-2 flex items-center gap-2 ml-2"
           >
             <FaFileAlt size={16} />
             Laporan
           </button>
         </div>
-
         <span className="">
-          Total Pengguna:{" "}
+          Total Kriteria:{" "}
           <span className="border-2 border-gray-500 p-1 rounded-sm">
-            {users.length}
+            {criteria.length}
           </span>
         </span>
       </div>
-      <table className="w-full ">
+
+      <table className="w-full border-collapse">
         <thead className="bg-gray-100">
           <tr className="border border-gray-300 text-center">
-            <th className="p-2 border-r border-gray-300">Nama pengguna</th>
-            <th className="p-2 border-r border-gray-300">Dibuat pada</th>
-            <th className="p-2 border-r border-gray-300">Aksi</th>
+            <th className="p-2 border-r border-gray-300">Kode Kriteria</th>
+            <th className="p-2 border-r border-gray-300">Nama Kriteria</th>
+            <th className="p-2 border-r border-gray-300">Tipe Kriteria</th>
+            <th className="p-2 border-r border-gray-300">Bobot</th>
+            <th className="p-2">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
-              <tr key={user._id} className="border border-gray-300 text-center">
+          {filteredCriteria.length > 0 ? (
+            filteredCriteria.map((item) => (
+              <tr key={item._id} className="border border-gray-300 text-center">
                 <td className="p-2 border-r border-gray-300">
-                  {user.username}
+                  {item.kodeKriteria}
                 </td>
                 <td className="p-2 border-r border-gray-300">
-                  {new Date(user.createdAt).toLocaleString("en-US", {
-                    hour12: false,
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  })}
+                  {item.namaKriteria}
                 </td>
-                <td className="flex p-2 gap-3 flex-row justify-center text-white text-sm">
+                <td className="p-2 border-r border-gray-300">
+                  {item.tipeKriteria}
+                </td>
+                <td className="p-2 border-r border-gray-300">
+                  {item.bobotKriteria}
+                </td>
+                <td className="p-2 flex justify-center gap-2">
                   <button
-                    onClick={() => handleEdit(user)}
-                    className=" bg-sky-500 hover:bg-sky-700 rounded p-2 flex items-center justify-center gap-1 text-white"
+                    onClick={() => handleEdit(item)}
+                    className="bg-sky-500 hover:bg-sky-700 rounded p-2 flex items-center justify-center gap-1 text-white"
                   >
-                    <FaPen size="15" />
+                    <FaPen size={15} />
                     Sunting
                   </button>
                   <button
-                    onClick={() => handleDelete(user._id)}
-                    className="bg-red-500 hover:bg-red-800  rounded p-2 flex items-center justify-center gap-1 text-white"
-                    disabled={isDeleting === user._id}
+                    onClick={() => handleDelete(item._id)}
+                    className="bg-red-500 hover:bg-red-800 rounded p-2 flex items-center justify-center gap-1 text-white"
+                    disabled={isDeleting === item._id}
                   >
-                    {isDeleting === user._id ? (
+                    {isDeleting === item._id ? (
                       <>
                         <Loader2 size={14} className="animate-spin" />
                         Menghapus...
@@ -479,17 +439,16 @@ export default function DashboardPage() {
             ))
           ) : (
             <tr className="border border-gray-300 text-center">
-              <td className="p-2" colSpan={3}>
-                Tidak ada data pengguna
+              <td className="p-2" colSpan={5}>
+                Tidak ada data kriteria
               </td>
             </tr>
           )}
         </tbody>
       </table>
 
-      {/* Pop up edit */}
       <AnimatePresence>
-        {editingUser && (
+        {editingCriteria && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -502,34 +461,63 @@ export default function DashboardPage() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-white rounded-lg p-6 w-full max-w-md"
             >
-              <h2 className="text-xl font-semibold mb-4">Edit Pengguna</h2>
+              <h2 className="text-xl font-semibold mb-4">Edit Kriteria</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nama Pengguna
+                    Kode Kriteria
                   </label>
                   <input
                     type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={kodeKriteria}
+                    onChange={(e) => setKodeKriteria(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kata Sandi (Opsional)
+                    Nama Kriteria
                   </label>
                   <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    type="text"
+                    value={namaKriteria}
+                    onChange={(e) => setNamaKriteria(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tipe Kriteria
+                  </label>
+                  <select
+                    value={tipeKriteria}
+                    onChange={(e) =>
+                      setTipeKriteria(e.target.value as "Benefit" | "Cost")
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  >
+                    <option value="Benefit">Benefit</option>
+                    <option value="Cost">Cost</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Bobot
+                  </label>
+                  <input
+                    type="number"
+                    value={bobotKriteria}
+                    onChange={(e) => setBobotKriteria(e.target.value)}
+                    min="0"
+                    max="5"
+                    step="0.01"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
               </div>
               <div className="flex justify-end gap-2 mt-4">
                 <button
-                  onClick={() => setEditingUser(null)}
+                  onClick={() => setEditingCriteria(null)}
                   className="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-800 disabled:opacity-50"
                 >
                   Batal
@@ -554,7 +542,6 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
 
-      {/* Pop up Tambah Pengguna */}
       <AnimatePresence>
         {isCreateModalOpen && (
           <motion.div
@@ -570,30 +557,59 @@ export default function DashboardPage() {
               className="bg-white rounded-lg p-6 w-full max-w-md"
             >
               <h2 className="text-xl font-semibold mb-4">
-                Tambah Pengguna Baru
+                Tambah Kriteria Baru
               </h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Username <span className="text-red-500">*</span>
+                    Kode Kriteria <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    name="username"
-                    value={newUserData.username}
+                    name="kodeKriteria"
+                    value={newCriteriaData.kodeKriteria}
                     onChange={handleCreateInputChange}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password <span className="text-red-500">*</span>
+                    Nama Kriteria <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="password"
-                    name="password"
-                    value={newUserData.password}
+                    type="text"
+                    name="namaKriteria"
+                    value={newCriteriaData.namaKriteria}
                     onChange={handleCreateInputChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tipe Kriteria <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="tipeKriteria"
+                    value={newCriteriaData.tipeKriteria}
+                    onChange={handleCreateInputChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                  >
+                    <option value="Benefit">Benefit</option>
+                    <option value="Cost">Cost</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Bobot
+                  </label>
+                  <input
+                    type="number"
+                    name="bobotKriteria"
+                    value={newCriteriaData.bobotKriteria}
+                    onChange={handleCreateInputChange}
+                    min="0"
+                    max="5"
+                    step="0.01"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
@@ -601,13 +617,13 @@ export default function DashboardPage() {
               <div className="flex justify-end gap-2 mt-4">
                 <button
                   onClick={handleCloseCreateModal}
-                  className="px-4 py-2 text-white rounded bg-red-500 hover:bg-red-800 disabled:opacity-50"
+                  className="px-4 py-2 text-white rounded bg-red-500 hover:bg-red-800"
                   disabled={isCreating}
                 >
                   Batal
                 </button>
                 <button
-                  onClick={handleCreateUser}
+                  onClick={handleCreateSave}
                   disabled={isCreating}
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
                 >
@@ -626,72 +642,70 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
 
-      {/* Pop up Laporan Pengguna */}
       <AnimatePresence>
         {isReportModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            id="user-report-modal-container"
+            id="report-modal-container"
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] flex flex-col print:shadow-none print:max-w-full print:max-h-none print:overflow-visible print:p-0"
+              className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto print:shadow-none print:max-w-full print:max-h-none print:overflow-visible print:p-0"
             >
               <h2 className="text-xl font-semibold mb-4 print:hidden">
-                Laporan Pengguna
+                Laporan Kriteria
               </h2>
 
-              {/* Tabel Preview Laporan */}
               <div
-                id="user-report-table"
-                className="flex-grow overflow-y-auto mb-4 print-only print:block"
+                id="criteria-report-table"
+                className="print-only print:block"
               >
                 <h2 className="text-xl font-semibold mb-4 text-center print-only print:block hidden">
-                  Laporan Pengguna
+                  Laporan Kriteria
                 </h2>
                 <table className="w-full border-collapse print:border-gray-500">
                   <thead className="bg-gray-100 print:bg-gray-200">
                     <tr className="border border-gray-300 text-center print:border-gray-500">
                       <th className="p-2 border-r border-gray-300 print:border-r-gray-500 print:border-b-gray-500">
-                        Nama Pengguna
+                        Kode Kriteria
                       </th>
-                      <th className="p-2 print:border-b-gray-500">
-                        Dibuat pada
+                      <th className="p-2 border-r border-gray-300 print:border-r-gray-500 print:border-b-gray-500">
+                        Nama Kriteria
                       </th>
+                      <th className="p-2 border-r border-gray-300 print:border-r-gray-500 print:border-b-gray-500">
+                        Tipe Kriteria
+                      </th>
+                      <th className="p-2 print:border-b-gray-500">Bobot</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredUsers.length > 0 ? (
-                      filteredUsers.map((user) => (
+                    {filteredCriteria.length > 0 ? (
+                      filteredCriteria.map((item) => (
                         <tr
-                          key={user._id}
+                          key={item._id}
                           className="border border-gray-300 text-center print:border-gray-500"
                         >
                           <td className="p-2 border-r border-gray-300 print:border-r-gray-500">
-                            {user.username}
+                            {item.kodeKriteria}
                           </td>
-                          <td className="p-2">
-                            {new Date(user.createdAt).toLocaleString("en-US", {
-                              hour12: false,
-                              year: "numeric",
-                              month: "2-digit",
-                              day: "2-digit",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              second: "2-digit",
-                            })}
+                          <td className="p-2 border-r border-gray-300 print:border-r-gray-500">
+                            {item.namaKriteria}
                           </td>
+                          <td className="p-2 border-r border-gray-300 print:border-r-gray-500">
+                            {item.tipeKriteria}
+                          </td>
+                          <td className="p-2">{item.bobotKriteria}</td>
                         </tr>
                       ))
                     ) : (
                       <tr className="border border-gray-300 text-center print:border-gray-500">
-                        <td className="p-2" colSpan={2}>
-                          Tidak ada data pengguna
+                        <td className="p-2" colSpan={4}>
+                          Tidak ada data kriteria
                         </td>
                       </tr>
                     )}

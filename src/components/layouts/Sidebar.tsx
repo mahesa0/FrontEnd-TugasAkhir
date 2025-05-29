@@ -23,7 +23,7 @@ const menuItems = [
     label: "Pengguna",
     icon: <RxDashboard />,
   },
-  { key: "history", label: "Riwayat", icon: <LiaHistorySolid /> },
+  { key: "criteria", label: "Data Kriteria", icon: <LiaHistorySolid /> },
   { key: "report", label: "Laporan", icon: <TbReport /> },
 ];
 

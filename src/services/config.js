@@ -3,18 +3,27 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || // fallback ke .env lokal
   "http://localhost:8181"; // fallback default
 
-//dev
-export const API_ENDPOINTS = {
-  LOGIN: `/users/login`,
-  LOGOUT: `/users/logout`,
-  REGISTER: `/users/register`,
-  GET_ALL_USERS: `/users/get/all`,
-  UPDATE_BY_ID: `/users/:id`,
-  DELETE_BY_ID: `/users/:id`,
+//user dev
+export const API_ENDPOINTS_USERS = {
+  LOGIN: `${API_BASE_URL}/users/login`,
+  LOGOUT: `${API_BASE_URL}/users/logout`,
+  REGISTER: `${API_BASE_URL}/users/register`,
+  GET_ALL_USERS: `${API_BASE_URL}/users/get/all`,
+  UPDATE_BY_ID: `${API_BASE_URL}/users/:id`,
+  DELETE_BY_ID: `${API_BASE_URL}/users/:id`,
 };
 
-//prod
-// export const API_ENDPOINTS = {
+//kriteria dev
+export const API_ENDPOINTS_CRITERIA = {
+  CREATE_KRITERIA: `${API_BASE_URL}/kriteria/`,
+  GET_BY_ID: `${API_BASE_URL}/kriteria/:id`,
+  GET_ALL_KRITERIA: `${API_BASE_URL}/kriteria/`,
+  UPDATE_BY_ID: `${API_BASE_URL}/kriteria/:id`,
+  DELETE_BY_ID: `${API_BASE_URL}/kriteria/:id`,
+};
+
+//user prod
+// export const API_ENDPOINTS_USERS = {
 //   LOGIN: `${API_BASE_URL}/users/login`,
 //   LOGOUT: `${API_BASE_URL}/users/logout`,
 //   REGISTER: `${API_BASE_URL}/users/register`,

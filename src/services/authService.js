@@ -1,16 +1,21 @@
-import { API_ENDPOINTS } from "./config.js";
+import {
+  API_ENDPOINTS_USERS
+} from "./config.js";
 
 // Service untuk menangani autentikasi
 export const AuthService = {
   // Fungsi login
   login: async (username, password) => {
     try {
-      const response = await fetch(API_ENDPOINTS.LOGIN, {
+      const response = await fetch(API_ENDPOINTS_USERS.LOGIN, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({
+          username,
+          password
+        }),
       });
 
       // Periksa jika respons tidak berhasil (status code >= 400)
@@ -48,8 +53,7 @@ export const AuthService = {
         // Buat objek error untuk dilempar
         throw {
           status: errorData.status || response.status,
-          message:
-            errorData.message || `Login gagal (Status: ${response.status})`,
+          message: errorData.message || `Login gagal (Status: ${response.status})`,
           error: true,
           responseText: errorData.responseText, // Sertakan teks respons parsial jika ada
         };
@@ -77,12 +81,16 @@ export const AuthService = {
   // Fungsi register
   register: async (username, password, confPassword) => {
     try {
-      const response = await fetch(API_ENDPOINTS.REGISTER, {
+      const response = await fetch(API_ENDPOINTS_USERS.REGISTER, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password, confPassword }),
+        body: JSON.stringify({
+          username,
+          password,
+          confPassword
+        }),
       });
 
       const data = await response.json();
@@ -106,7 +114,7 @@ export const AuthService = {
   //Fungsi untuk mengambil semua data (kecuali password)
   getAllUsers: async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.GET_ALL_USERS, {
+      const response = await fetch(API_ENDPOINTS_USERS.GET_ALL_USERS, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -144,7 +152,7 @@ export const AuthService = {
         };
       }
 
-      const endpoint = API_ENDPOINTS.UPDATE_BY_ID.replace(":id", id);
+      const endpoint = API_ENDPOINTS_USERS.UPDATE_BY_ID.replace(":id", id);
 
       const response = await fetch(endpoint, {
         method: "PUT",
@@ -177,8 +185,7 @@ export const AuthService = {
     try {
       const token = AuthService.getToken();
       const response = await fetch(
-        API_ENDPOINTS.DELETE_BY_ID.replace(":id", id),
-        {
+        API_ENDPOINTS_USERS.DELETE_BY_ID.replace(":id", id), {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -209,7 +216,7 @@ export const AuthService = {
       const token = AuthService.getToken();
 
       // Panggil endpoint logout di backend
-      const response = await fetch(API_ENDPOINTS.LOGOUT, {
+      const response = await fetch(API_ENDPOINTS_USERS.LOGOUT, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import MainLayout from "./components/layouts/MainLayout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
-import History from "./pages/Riwayat";
+import Criteria from "./pages/Criteria";
 import Report from "./pages/Report";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -54,7 +54,7 @@ function App() {
           <Route index element={<Navigate to="home" replace />} />
           <Route path="/dashboard/home" element={<Home />} />
           <Route path="/dashboard/user" element={<Dashboard />} />
-          <Route path="/dashboard/history" element={<History />} />
+          <Route path="/dashboard/criteria" element={<Criteria />} />
           <Route path="/dashboard/report" element={<Report />} />
         </Route>
 

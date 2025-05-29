@@ -50,3 +50,94 @@ body {
   margin: 0;
   padding: 0;
 }
+
+@media print {
+
+  /* Sembunyikan semua elemen secara default */
+  body * {
+    visibility: hidden;
+  }
+
+  #user-report-table,
+  #user-report-table * {
+    visibility: visible;
+  }
+
+  #user-report-table {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    margin-top: 20px;
+    /* Add some space above the table if needed */
+  }
+
+  #user-report-table h2.print-only {
+    display: block !important;
+    visibility: visible;
+  }
+
+  #user-report-table table {
+    width: 100% !important;
+    border-collapse: collapse;
+  }
+
+  #user-report-table table,
+  #user-report-table th,
+  #user-report-table td {
+    border: 1px solid #ccc !important;
+    padding: 8px !important;
+    text-align: left !important;
+  }
+
+  #user-report-table th {
+    background-color: #f2f2f2 !important;
+  }
+
+  /* Tampilkan hanya elemen di dalam container tabel laporan dengan kelas print-only */
+  #criteria-report-table,
+  #criteria-report-table * {
+    visibility: visible;
+  }
+
+  /* Pastikan container tabel mengambil posisi dan ukuran yang sesuai untuk print */
+  #criteria-report-table {
+    position: absolute;
+    /* Gunakan absolute untuk memposisikan tabel di halaman */
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    /* Tambahkan padding agar tidak terlalu mepet pinggir */
+    box-sizing: border-box;
+  }
+
+  /* Pastikan judul laporan yang hanya untuk print juga visible */
+  #criteria-report-table h2.print-only {
+    display: block !important;
+    /* Pastikan judul terlihat saat print */
+    visibility: visible;
+  }
+
+  /* Optional: styling tambahan untuk tabel saat print agar lebih rapi */
+  #criteria-report-table table {
+    width: 100% !important;
+    border-collapse: collapse;
+  }
+
+  #criteria-report-table table,
+  #criteria-report-table th,
+  #criteria-report-table td {
+    border: 1px solid #ccc !important;
+    /* Tambahkan border tabel jika diinginkan */
+    padding: 8px !important;
+    text-align: left !important;
+  }
+
+  #criteria-report-table th {
+    background-color: #f2f2f2 !important;
+    /* Warna latar header */
+  }
+}
