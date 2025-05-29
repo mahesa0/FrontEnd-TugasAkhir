@@ -2,10 +2,10 @@ import { LogOut, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AuthService from "../../services/authService";
 import { useState } from "react";
-import { RxDashboard } from "react-icons/rx";
+import { FiUsers } from "react-icons/fi";
 import { TbReport } from "react-icons/tb";
-import { LiaHistorySolid } from "react-icons/lia";
 import { FaHome } from "react-icons/fa";
+import { TbFileDescription } from "react-icons/tb";
 
 type SidebarProps = {
   activeMenu: string;
@@ -21,9 +21,9 @@ const menuItems = [
   {
     key: "user",
     label: "Pengguna",
-    icon: <RxDashboard />,
+    icon: <FiUsers />,
   },
-  { key: "criteria", label: "Data Kriteria", icon: <LiaHistorySolid /> },
+  { key: "criteria", label: "Data Kriteria", icon: <TbFileDescription /> },
   { key: "report", label: "Laporan", icon: <TbReport /> },
 ];
 
