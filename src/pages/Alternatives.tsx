@@ -3,64 +3,65 @@ import {
   FaPen,
   FaTrash,
   FaTimes,
-  FaPlus,
   FaPrint,
+  FaPlus,
   FaFileAlt,
   FaFileExcel,
 } from "react-icons/fa";
-import { Loader2 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import "react-icons";
+import AlternatifService from "../services/alternatifService"; // Import service alternatif
 import Swal from "sweetalert2";
-import { CriteriaService } from "../services/criteriaService";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
-interface Criteria {
-  _id: string;
-  kodeKriteria: string;
-  namaKriteria: string;
-  tipeKriteria: "Benefit" | "Cost";
-  bobotKriteria: number;
-}
+export default function AlternativesPage() {
+  interface Alternatif {
+    _id: string;
+    kodeJurusan: string;
+    namaJurusan: string;
+    deskripsi: string;
+  }
 
-export default function Criteria() {
-  const [criteria, setCriteria] = useState<Criteria[]>([]);
-  const [editingCriteria, setEditingCriteria] = useState<Criteria | null>(null);
-  const [kodeKriteria, setKodeKriteria] = useState("");
-  const [namaKriteria, setNamaKriteria] = useState("");
-  const [tipeKriteria, setTipeKriteria] = useState<"Benefit" | "Cost">(
-    "Benefit"
+  const [alternatif, setAlternatif] = useState<Alternatif[]>([]);
+  const [editingAlternatif, setEditingAlternatif] = useState<Alternatif | null>(
+    null
   );
-  const [bobotKriteria, setBobotKriteria] = useState("");
+  const [kodeJurusan, setKodeJurusan] = useState("");
+  const [namaJurusan, setNamaJurusan] = useState("");
+  const [deskripsi, setDeskripsi] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+  // State untuk modal Tambah Alternatif
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [newCriteriaData, setNewCriteriaData] = useState({
-    kodeKriteria: "",
-    namaKriteria: "",
-    tipeKriteria: "Benefit" as "Benefit" | "Cost",
-    bobotKriteria: "",
+  const [newAlternatifData, setNewAlternatifData] = useState({
+    kodeJurusan: "",
+    namaJurusan: "",
+    deskripsi: "",
   });
   const [isCreating, setIsCreating] = useState(false);
+
+  // State untuk modal Laporan Alternatif
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
-  const handleEdit = (criteria: Criteria) => {
-    setEditingCriteria(criteria);
-    setKodeKriteria(criteria.kodeKriteria);
-    setNamaKriteria(criteria.namaKriteria);
-    setTipeKriteria(criteria.tipeKriteria);
-    setBobotKriteria(criteria.bobotKriteria?.toString() ?? "");
+  const handleEdit = (alt: Alternatif) => {
+    setEditingAlternatif(alt);
+    setKodeJurusan(alt.kodeJurusan);
+    setNamaJurusan(alt.namaJurusan);
+    setDeskripsi(alt.deskripsi);
   };
 
   const handleSave = async () => {
-    if (!editingCriteria) return;
+    if (!editingAlternatif) return;
 
-    if (!kodeKriteria.trim() || !namaKriteria.trim()) {
+    if (!kodeJurusan.trim() || !namaJurusan.trim()) {
       await Swal.fire({
         icon: "error",
         title: "Gagal!",
         width: "47vh",
         confirmButtonColor: "#3B82F6",
-        text: "Semua field harus diisi (Kode Kriteria dan Nama Kriteria)",
+        text: "Kode Jurusan dan Nama Jurusan tidak boleh kosong",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
       return;
@@ -68,38 +69,50 @@ export default function Criteria() {
 
     setIsSaving(true);
     try {
-      const updatedData = {
-        kodeKriteria,
-        namaKriteria,
-        tipeKriteria,
-        bobotKriteria: parseFloat(bobotKriteria),
-      };
+      const response = await AlternatifService.updateAlternatifByKode(
+        editingAlternatif.kodeJurusan,
+        {
+          kodeJurusan,
+          namaJurusan,
+          deskripsi,
+        }
+      );
 
-      await CriteriaService.updateCriteria(editingCriteria._id, updatedData);
       await Swal.fire({
-        title: "Berhasil!",
-        text: "Kriteria berhasil diperbarui",
         icon: "success",
+        title: "Berhasil!",
+        text: response.message || `Alternatif berhasil diperbarui`,
         timer: 1300,
         showConfirmButton: false,
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
 
-      const response = await CriteriaService.getAllCriteria();
-      if (response && response.data) {
-        setCriteria(response.data);
-      }
-      setEditingCriteria(null);
+      await fetchAlternatif();
+
+      setEditingAlternatif(null);
     } catch (error) {
-      console.error("Gagal memperbarui kriteria:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      Swal.fire({
-        title: "Gagal!",
-        text:
-          "Gagal memperbarui kriteria. Silakan coba lagi.\n\nDetail: " +
-          errorMessage,
+      console.error("Gagal memperbarui alternatif:", error);
+
+      let errorMessage = "Gagal memperbarui alternatif";
+
+      if (error && typeof error === "object") {
+        if ("message" in error && typeof error.message === "string") {
+          errorMessage = error.message;
+        } else {
+          try {
+            errorMessage = JSON.stringify(error);
+          } catch (e) {
+            errorMessage = String(error);
+          }
+        }
+      }
+
+      await Swal.fire({
         icon: "error",
+        title: "Gagal!",
+        width: "53vh",
+        text: errorMessage,
+        confirmButtonColor: "#3B82F6",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
     } finally {
@@ -107,10 +120,10 @@ export default function Criteria() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (kodeJurusan: string) => {
     const result = await Swal.fire({
       title: "Apakah kamu yakin?",
-      text: "Data kriteria akan dihapus secara permanen!",
+      text: "Data alternatif akan dihapus secara permanen!",
       icon: "warning",
       width: "59vh",
       showCancelButton: true,
@@ -122,33 +135,35 @@ export default function Criteria() {
     });
 
     if (result.isConfirmed) {
-      setIsDeleting(id);
+      setIsDeleting(kodeJurusan);
       try {
         await new Promise((resolve) => setTimeout(resolve, 300));
-        await CriteriaService.deleteCriteria(id);
+        await AlternatifService.deleteAlternatifByKode(kodeJurusan);
 
         await Swal.fire({
           title: "Terhapus!",
-          text: "Kriteria berhasil dihapus.",
+          text: "Alternatif berhasil dihapus.",
           icon: "success",
           timer: 1300,
           showConfirmButton: false,
           showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
         });
 
-        const response = await CriteriaService.getAllCriteria();
-        if (response && response.data) {
-          setCriteria(response.data);
-        }
+        await fetchAlternatif();
       } catch (error) {
-        console.error("Gagal menghapus kriteria:", error);
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+        console.error("Gagal menghapus alternatif:", error);
+        let errorMessage = "Gagal menghapus alternatif. Silakan coba lagi.";
+        if (
+          error &&
+          typeof error === "object" &&
+          "message" in error &&
+          typeof (error as { message: string }).message === "string"
+        ) {
+          errorMessage = (error as { message: string }).message;
+        }
         Swal.fire({
           title: "Gagal!",
-          text:
-            "Gagal menghapus kriteria. Silakan coba lagi.\n\nDetail: " +
-            errorMessage,
+          text: errorMessage,
           icon: "error",
           showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
         });
@@ -158,76 +173,77 @@ export default function Criteria() {
     }
   };
 
-  const fetchCriteria = async () => {
+  const fetchAlternatif = async () => {
     try {
-      const response = await CriteriaService.getAllCriteria();
-      if (response && response.data) {
-        setCriteria(response.data);
+      const response = await AlternatifService.getAllAlternatif();
+      if (response && Array.isArray(response.data)) {
+        setAlternatif(response.data);
       } else {
         console.warn(
-          "CriteriaService.getAllCriteria returned unexpected data:",
+          "AlternatifService.getAllAlternatif returned unexpected data:",
           response
         );
-        setCriteria([]);
+        setAlternatif([]);
       }
     } catch (error) {
-      console.error("Error fetching criteria:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      console.error("Error fetching alternatif:", error);
+      let errorMessage =
+        "Gagal memuat data alternatif. Pastikan Anda sudah login dan server berjalan.";
+      if (
+        error &&
+        typeof error === "object" &&
+        "message" in error &&
+        typeof (error as { message: string }).message === "string"
+      ) {
+        errorMessage += `\n\nDetail: ${error.message}`;
+      }
       Swal.fire({
         title: "Error",
-        text:
-          "Gagal memuat data kriteria. Pastikan Anda sudah login dan server berjalan.\n\nDetail: " +
-          errorMessage,
+        text: errorMessage,
         icon: "error",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
-      setCriteria([]);
+      setAlternatif([]);
     }
   };
 
   useEffect(() => {
-    fetchCriteria();
+    fetchAlternatif();
   }, []);
 
+  // Handler untuk membuka modal Tambah Alternatif
   const handleOpenCreateModal = () => {
-    setNewCriteriaData({
-      kodeKriteria: "",
-      namaKriteria: "",
-      tipeKriteria: "Benefit",
-      bobotKriteria: "",
-    });
+    setNewAlternatifData({ kodeJurusan: "", namaJurusan: "", deskripsi: "" });
     setIsCreateModalOpen(true);
   };
 
+  // Handler untuk menutup modal Tambah Alternatif
   const handleCloseCreateModal = () => {
     setIsCreateModalOpen(false);
   };
 
-  const handleCreateInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
+  // Handler untuk input change pada form Tambah Alternatif
+  const handleCreateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setNewCriteriaData((prevData) => ({
+    setNewAlternatifData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
   };
 
-  const handleCreateSave = async () => {
+  // Handler untuk submit form Tambah Alternatif
+  const handleCreateAlternatif = async () => {
     if (
-      !newCriteriaData.kodeKriteria.trim() ||
-      !newCriteriaData.namaKriteria.trim() ||
-      !newCriteriaData.tipeKriteria
+      !newAlternatifData.kodeJurusan.trim() ||
+      !newAlternatifData.namaJurusan.trim() ||
+      !newAlternatifData.deskripsi.trim()
     ) {
       await Swal.fire({
         icon: "error",
         title: "Gagal!",
         width: "47vh",
         confirmButtonColor: "#3B82F6",
-        text: "Kode Kriteria, Nama Kriteria, dan Tipe Kriteria harus diisi",
+        text: "Kode Jurusan, Nama Jurusan, dan Deskripsi harus diisi",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
       return;
@@ -235,34 +251,48 @@ export default function Criteria() {
 
     setIsCreating(true);
     try {
-      const criteriaToCreate = {
-        ...newCriteriaData,
-        bobotKriteria: newCriteriaData.bobotKriteria
-          ? parseFloat(newCriteriaData.bobotKriteria)
-          : undefined,
-      };
+      const response = await AlternatifService.createAlternatif(
+        newAlternatifData
+      );
 
-      await CriteriaService.createCriteria(criteriaToCreate);
       await Swal.fire({
         title: "Berhasil!",
-        text: "Kriteria berhasil ditambahkan",
+        text: response.message || "Alternatif berhasil ditambahkan",
         icon: "success",
         timer: 1300,
         showConfirmButton: false,
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
 
-      fetchCriteria();
+      await fetchAlternatif();
       handleCloseCreateModal();
-    } catch (error) {
-      console.error("Gagal membuat kriteria:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+    } catch (error: unknown) {
+      console.error("Gagal membuat alternatif:", error);
+
+      let errorMessage = "Gagal membuat alternatif. Silakan coba lagi.";
+
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error &&
+        typeof (error as { message: string }).message === "string"
+      ) {
+        errorMessage = (error as { message: string }).message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === "string") {
+        errorMessage = error;
+      } else {
+        try {
+          errorMessage = JSON.stringify(error);
+        } catch (e) {
+          errorMessage = String(error);
+        }
+      }
+
       Swal.fire({
         title: "Gagal!",
-        text:
-          "Gagal membuat kriteria. Silakan coba lagi.\n\nDetail: " +
-          errorMessage,
+        text: errorMessage,
         icon: "error",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
@@ -271,48 +301,43 @@ export default function Criteria() {
     }
   };
 
+  // Handler untuk membuka modal Laporan Alternatif
   const handleOpenReportModal = () => {
     setIsReportModalOpen(true);
   };
 
+  // Handler untuk menutup modal Laporan Alternatif
   const handleCloseReportModal = () => {
     setIsReportModalOpen(false);
   };
 
+  // Handler untuk tombol print (dalam modal laporan)
   const handlePrintReport = () => {
     window.print();
   };
 
+  // Handler untuk tombol export ke Excel (CSV) (dalam modal laporan)
   const handleExportReportExcel = () => {
-    const filteredCriteria = criteria.filter(
-      (item) =>
-        item &&
-        item.namaKriteria &&
-        item.namaKriteria.toLowerCase().includes(searchTerm.toLowerCase())
+    const alternatifToExport = alternatif.filter(
+      (alt) =>
+        alt.namaJurusan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        alt.kodeJurusan.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (filteredCriteria.length === 0) {
+    if (alternatifToExport.length === 0) {
       Swal.fire({
         icon: "info",
         title: "Info",
-        text: "Tidak ada data kriteria untuk diexport.",
+        text: "Tidak ada data alternatif untuk diexport.",
         showClass: { backdrop: "bg-black/50 backdrop-blur-sm" },
       });
       return;
     }
 
-    const headers = [
-      "Kode Kriteria",
-      "Nama Kriteria",
-      "Tipe Kriteria",
-      "Bobot",
-    ];
-    const rows = filteredCriteria.map((item) => [
-      item.kodeKriteria,
-      item.namaKriteria,
-      item.tipeKriteria,
-      item.bobotKriteria,
-    ]);
+    const headers = ["Kode Jurusan", "Nama Jurusan", "Deskripsi"];
+    const rows = alternatifToExport.map((alt) => {
+      return [alt.kodeJurusan, alt.namaJurusan, alt.deskripsi];
+    });
 
     const csvContent = [
       headers.join(","),
@@ -324,7 +349,7 @@ export default function Criteria() {
     const url = URL.createObjectURL(blob);
 
     link.setAttribute("href", url);
-    link.setAttribute("download", "data_kriteria.csv");
+    link.setAttribute("download", "data_alternatif.csv");
     link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
@@ -332,21 +357,21 @@ export default function Criteria() {
     URL.revokeObjectURL(url);
   };
 
-  const filteredCriteria = criteria.filter(
-    (item) =>
-      item &&
-      item.namaKriteria &&
-      item.namaKriteria.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter data alternatif berdasarkan searchTerm
+  const filteredAlternatif = alternatif.filter(
+    (alt) =>
+      alt.namaJurusan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      alt.kodeJurusan.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="p-4 text-gray-700">
       <div className="flex justify-between items-center mb-4">
-        <span className="text-2xl">Tabel Kriteria</span>
+        <span className="text-2xl">Tabel Alternatif</span>
         <div className="relative w-full sm:w-1/3 flex items-center">
           <input
             type="text"
-            placeholder="Cari nama kriteria..."
+            placeholder="Cari kode atau nama jurusan..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 w-full shadow"
@@ -358,7 +383,10 @@ export default function Criteria() {
             <FaTimes size={16} />
           </button>
         </div>
-        <div className="flex flex-row">
+
+        {/* Container untuk tombol Tambah dan Laporan */}
+        <div className="flex flex-row gap-2 items-center">
+          {/* Tombol Tambah Alternatif */}
           <button
             onClick={handleOpenCreateModal}
             className="bg-green-500 hover:bg-green-700 text-white rounded-lg px-4 py-2 flex items-center gap-2"
@@ -366,62 +394,60 @@ export default function Criteria() {
             <FaPlus size={16} />
             Tambah
           </button>
+
+          {/* Tombol Laporan Alternatif */}
           <button
             onClick={handleOpenReportModal}
-            className="bg-blue-500 hover:bg-blue-700 text-white rounded-lg px-4 py-2 flex items-center gap-2 ml-2"
+            className="bg-blue-500 hover:bg-blue-700 text-white rounded-lg px-4 py-2 flex items-center gap-2"
           >
             <FaFileAlt size={16} />
             Laporan
           </button>
         </div>
+
         <span className="">
-          Total Kriteria:{" "}
+          Total Alternatif:{" "}
           <span className="border-2 border-gray-500 p-1 rounded-sm">
-            {criteria.length}
+            {alternatif.length}
           </span>
         </span>
       </div>
-
-      <table className="w-full border-collapse">
+      <table className="w-full ">
         <thead className="bg-gray-100">
           <tr className="border border-gray-300 text-center">
-            <th className="p-2 border-r border-gray-300">Kode Kriteria</th>
-            <th className="p-2 border-r border-gray-300">Nama Kriteria</th>
-            <th className="p-2 border-r border-gray-300">Tipe Kriteria</th>
-            <th className="p-2 border-r border-gray-300">Bobot</th>
-            <th className="p-2">Aksi</th>
+            <th className="p-2 border-r border-gray-300">Kode Jurusan</th>
+            <th className="p-2 border-r border-gray-300">Nama Jurusan</th>
+            <th className="p-2 border-r border-gray-300">Deskripsi</th>
+            <th className="p-2 border-r border-gray-300">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          {filteredCriteria.length > 0 ? (
-            filteredCriteria.map((item) => (
-              <tr key={item._id} className="border border-gray-300 text-center">
+          {filteredAlternatif.length > 0 ? (
+            filteredAlternatif.map((alt) => (
+              <tr key={alt._id} className="border border-gray-300 text-center">
                 <td className="p-2 border-r border-gray-300">
-                  {item.kodeKriteria}
+                  {alt.kodeJurusan}
                 </td>
                 <td className="p-2 border-r border-gray-300">
-                  {item.namaKriteria}
+                  {alt.namaJurusan}
                 </td>
                 <td className="p-2 border-r border-gray-300">
-                  {item.tipeKriteria}
+                  {alt.deskripsi}
                 </td>
-                <td className="p-2 border-r border-gray-300">
-                  {item.bobotKriteria}
-                </td>
-                <td className="p-2 flex justify-center gap-2">
+                <td className="flex p-2 gap-3 flex-row justify-center text-white text-sm">
                   <button
-                    onClick={() => handleEdit(item)}
-                    className="bg-sky-500 hover:bg-sky-700 rounded p-2 flex items-center justify-center gap-1 text-white"
+                    onClick={() => handleEdit(alt)}
+                    className=" bg-sky-500 hover:bg-sky-700 rounded p-2 flex items-center justify-center gap-1 text-white"
                   >
-                    <FaPen size={15} />
+                    <FaPen size="15" />
                     Sunting
                   </button>
                   <button
-                    onClick={() => handleDelete(item._id)}
-                    className="bg-red-500 hover:bg-red-800 rounded p-2 flex items-center justify-center gap-1 text-white"
-                    disabled={isDeleting === item._id}
+                    onClick={() => handleDelete(alt.kodeJurusan)}
+                    className="bg-red-500 hover:bg-red-800  rounded p-2 flex items-center justify-center gap-1 text-white"
+                    disabled={isDeleting === alt.kodeJurusan}
                   >
-                    {isDeleting === item._id ? (
+                    {isDeleting === alt.kodeJurusan ? (
                       <>
                         <Loader2 size={14} className="animate-spin" />
                         Menghapus...
@@ -439,15 +465,16 @@ export default function Criteria() {
           ) : (
             <tr className="border border-gray-300 text-center">
               <td className="p-2" colSpan={5}>
-                Tidak ada data kriteria
+                Tidak ada data alternatif
               </td>
             </tr>
           )}
         </tbody>
       </table>
 
+      {/* Pop up edit */}
       <AnimatePresence>
-        {editingCriteria && (
+        {editingAlternatif && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -460,63 +487,45 @@ export default function Criteria() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-white rounded-lg p-6 w-full max-w-md"
             >
-              <h2 className="text-xl font-semibold mb-4">Edit Kriteria</h2>
+              <h2 className="text-xl font-semibold mb-4">Edit Alternatif</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kode Kriteria
+                    Kode Jurusan
                   </label>
                   <input
                     type="text"
-                    value={kodeKriteria}
-                    onChange={(e) => setKodeKriteria(e.target.value)}
+                    value={kodeJurusan}
+                    onChange={(e) => setKodeJurusan(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nama Kriteria
+                    Nama Jurusan
                   </label>
                   <input
                     type="text"
-                    value={namaKriteria}
-                    onChange={(e) => setNamaKriteria(e.target.value)}
+                    value={namaJurusan}
+                    onChange={(e) => setNamaJurusan(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tipe Kriteria
-                  </label>
-                  <select
-                    value={tipeKriteria}
-                    onChange={(e) =>
-                      setTipeKriteria(e.target.value as "Benefit" | "Cost")
-                    }
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  >
-                    <option value="Benefit">Benefit</option>
-                    <option value="Cost">Cost</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bobot
+                    Deskripsi
                   </label>
                   <input
-                    type="number"
-                    value={bobotKriteria}
-                    onChange={(e) => setBobotKriteria(e.target.value)}
-                    min="0"
-                    max="5"
-                    step="0.01"
+                    type="text"
+                    value={deskripsi}
+                    onChange={(e) => setDeskripsi(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
               </div>
               <div className="flex justify-end gap-2 mt-4">
                 <button
-                  onClick={() => setEditingCriteria(null)}
+                  onClick={() => setEditingAlternatif(null)}
                   className="px-4 py-2 text-white bg-red-500 rounded hover:bg-red-800 disabled:opacity-50"
                 >
                   Batal
@@ -541,6 +550,7 @@ export default function Criteria() {
         )}
       </AnimatePresence>
 
+      {/* Pop up Tambah Alternatif */}
       <AnimatePresence>
         {isCreateModalOpen && (
           <motion.div
@@ -556,59 +566,42 @@ export default function Criteria() {
               className="bg-white rounded-lg p-6 w-full max-w-md"
             >
               <h2 className="text-xl font-semibold mb-4">
-                Tambah Kriteria Baru
+                Tambah Alternatif Baru
               </h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kode Kriteria <span className="text-red-500">*</span>
+                    Kode Jurusan <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    name="kodeKriteria"
-                    value={newCriteriaData.kodeKriteria}
+                    name="kodeJurusan"
+                    value={newAlternatifData.kodeJurusan}
                     onChange={handleCreateInputChange}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nama Kriteria <span className="text-red-500">*</span>
+                    Nama Jurusan <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    name="namaKriteria"
-                    value={newCriteriaData.namaKriteria}
+                    name="namaJurusan"
+                    value={newAlternatifData.namaJurusan}
                     onChange={handleCreateInputChange}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tipe Kriteria <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="tipeKriteria"
-                    value={newCriteriaData.tipeKriteria}
-                    onChange={handleCreateInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  >
-                    <option value="Benefit">Benefit</option>
-                    <option value="Cost">Cost</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bobot
+                    Deskripsi <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="number"
-                    name="bobotKriteria"
-                    value={newCriteriaData.bobotKriteria}
+                    type="text"
+                    name="deskripsi"
+                    value={newAlternatifData.deskripsi}
                     onChange={handleCreateInputChange}
-                    min="0"
-                    max="5"
-                    step="0.01"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
@@ -616,13 +609,13 @@ export default function Criteria() {
               <div className="flex justify-end gap-2 mt-4">
                 <button
                   onClick={handleCloseCreateModal}
-                  className="px-4 py-2 text-white rounded bg-red-500 hover:bg-red-800"
+                  className="px-4 py-2 text-white rounded bg-red-500 hover:bg-red-800 disabled:opacity-50"
                   disabled={isCreating}
                 >
                   Batal
                 </button>
                 <button
-                  onClick={handleCreateSave}
+                  onClick={handleCreateAlternatif}
                   disabled={isCreating}
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
                 >
@@ -641,70 +634,68 @@ export default function Criteria() {
         )}
       </AnimatePresence>
 
+      {/* Pop up Laporan Alternatif */}
       <AnimatePresence>
         {isReportModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            id="report-modal-container"
+            id="alternatif-report-modal-container"
             className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto print:shadow-none print:max-w-full print:max-h-none print:overflow-visible print:p-0"
+              className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] flex flex-col print:shadow-none print:max-w-full print:max-h-none print:overflow-visible print:p-0"
             >
               <h2 className="text-xl font-semibold mb-4 print:hidden">
-                Laporan Kriteria
+                Laporan Alternatif
               </h2>
 
+              {/* Tabel Preview Laporan */}
               <div
-                id="criteria-report-table"
-                className="print-only print:block"
+                id="alternatif-report-table"
+                className="flex-grow overflow-y-auto mb-4 print-only print:block"
               >
                 <h2 className="text-xl font-semibold mb-4 text-center print-only print:block hidden">
-                  Laporan Kriteria
+                  Laporan Alternatif
                 </h2>
                 <table className="w-full border-collapse print:border-gray-500">
                   <thead className="bg-gray-100 print:bg-gray-200">
                     <tr className="border border-gray-300 text-center print:border-gray-500">
                       <th className="p-2 border-r border-gray-300 print:border-r-gray-500 print:border-b-gray-500">
-                        Kode Kriteria
+                        Kode Jurusan
                       </th>
                       <th className="p-2 border-r border-gray-300 print:border-r-gray-500 print:border-b-gray-500">
-                        Nama Kriteria
+                        Nama Jurusan
                       </th>
-                      <th className="p-2 border-r border-gray-300 print:border-r-gray-500 print:border-b-gray-500">
-                        Tipe Kriteria
-                      </th>
-                      <th className="p-2 print:border-b-gray-500">Bobot</th>
+                      <th className="p-2 print:border-b-gray-500">Deskripsi</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredCriteria.length > 0 ? (
-                      filteredCriteria.map((item) => (
+                    {filteredAlternatif.length > 0 ? (
+                      filteredAlternatif.map((alt) => (
                         <tr
-                          key={item._id}
+                          key={alt._id}
                           className="border border-gray-300 text-center print:border-gray-500"
                         >
                           <td className="p-2 border-r border-gray-300 print:border-r-gray-500">
-                            {item.kodeKriteria}
+                            {alt.kodeJurusan}
                           </td>
                           <td className="p-2 border-r border-gray-300 print:border-r-gray-500">
-                            {item.namaKriteria}
+                            {alt.namaJurusan}
                           </td>
-                          <td className="p-2 border-r border-gray-300 print:border-r-gray-500">
-                            {item.tipeKriteria}
+                          <td className="p-2 print:border-r-gray-500">
+                            {alt.deskripsi}
                           </td>
-                          <td className="p-2">{item.bobotKriteria}</td>
                         </tr>
                       ))
                     ) : (
                       <tr className="border border-gray-300 text-center print:border-gray-500">
                         <td className="p-2" colSpan={4}>
-                          Tidak ada data kriteria
+                          Tidak ada data alternatif
                         </td>
                       </tr>
                     )}

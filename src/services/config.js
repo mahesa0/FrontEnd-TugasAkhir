@@ -22,6 +22,15 @@ export const API_ENDPOINTS_CRITERIA = {
   DELETE_BY_ID: `${API_BASE_URL}/kriteria/:id`,
 };
 
+//alternatif dev
+export const API_ENDPOINTS_ALTERNATIF = {
+  CREATE_ALTERNATIF: `${API_BASE_URL}/alternatif/`,
+  GET_BY_KODE: `${API_BASE_URL}/alternatif/:kodeJurusan`,
+  GET_ALL_ALTERNATIF: `${API_BASE_URL}/alternatif/`,
+  UPDATE_BY_KODE: `${API_BASE_URL}/alternatif/:kodeJurusan`,
+  DELETE_BY_KODE: `${API_BASE_URL}/alternatif/:kodeJurusan`,
+};
+
 //user prod
 // export const API_ENDPOINTS_USERS = {
 //   LOGIN: `${API_BASE_URL}/users/login`,

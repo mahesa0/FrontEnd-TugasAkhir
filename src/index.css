@@ -140,4 +140,48 @@ body {
     background-color: #f2f2f2 !important;
     /* Warna latar header */
   }
+
+  #alternatif-report-table,
+  #alternatif-report-table * {
+    visibility: visible;
+  }
+
+  /* Pastikan container tabel mengambil posisi dan ukuran yang sesuai untuk print */
+  #alternatif-report-table {
+    position: absolute;
+    /* Gunakan absolute untuk memposisikan tabel di halaman */
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    /* Tambahkan padding agar tidak terlalu mepet pinggir */
+    box-sizing: border-box;
+  }
+
+  /* Pastikan judul laporan yang hanya untuk print juga visible */
+  #alternatif-report-table h2.print-only {
+    display: block !important;
+    /* Pastikan judul terlihat saat print */
+    visibility: visible;
+  }
+
+  /* Optional: styling tambahan untuk tabel saat print agar lebih rapi */
+  #alternatif-report-table table {
+    width: 100% !important;
+    border-collapse: collapse;
+  }
+
+  #alternatif-report-table table,
+  #alternatif-report-table th,
+  #alternatif-report-table td {
+    border: 1px solid #ccc !important;
+    /* Tambahkan border tabel jika diinginkan */
+    padding: 8px !important;
+    text-align: left !important;
+  }
+
+  #alternatif-report-table th {
+    background-color: #f2f2f2 !important;
+    /* Warna latar header */
+  }
 }

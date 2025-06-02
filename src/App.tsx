@@ -6,7 +6,7 @@ import MainLayout from "./components/layouts/MainLayout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Criteria from "./pages/Criteria";
-import Report from "./pages/Report";
+import Alternatives from "./pages/Alternatives";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
@@ -55,7 +55,7 @@ function App() {
           <Route path="/dashboard/home" element={<Home />} />
           <Route path="/dashboard/user" element={<Dashboard />} />
           <Route path="/dashboard/criteria" element={<Criteria />} />
-          <Route path="/dashboard/report" element={<Report />} />
+          <Route path="/dashboard/alternatives" element={<Alternatives />} />
         </Route>
 
         {/* Fallback untuk rute tidak valid */}

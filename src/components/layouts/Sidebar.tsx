@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import AuthService from "../../services/authService";
 import { useState } from "react";
 import { FiUsers } from "react-icons/fi";
-import { TbReport } from "react-icons/tb";
 import { FaHome } from "react-icons/fa";
 import { TbFileDescription } from "react-icons/tb";
 
@@ -24,7 +23,11 @@ const menuItems = [
     icon: <FiUsers />,
   },
   { key: "criteria", label: "Data Kriteria", icon: <TbFileDescription /> },
-  { key: "report", label: "Laporan", icon: <TbReport /> },
+  {
+    key: "alternatives",
+    label: "Data Alternatif",
+    icon: <TbFileDescription />,
+  },
 ];
 
 export default function Sidebar({ activeMenu, setActiveMenu }: SidebarProps) {
